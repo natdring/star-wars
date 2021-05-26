@@ -1,12 +1,12 @@
 import json
 import configparser
 import pandas as pd
-from graphviz import Graph
+import networkx as nx
 
 config = configparser.ConfigParser()
 config.read('config/settings.ini')
  
-interactions_data_file = config['DEFAULT']['data_dir_path'] + 'starwars-episode-1-interactions.json'
+interactions_data_file = config['DEFAULT']['data_dir_path'] + 'starwars-full-interactions.json'
 
 with open(interactions_data_file) as f:
     interactions_data = json.load(f)
@@ -14,14 +14,13 @@ with open(interactions_data_file) as f:
 # node_df = pd.DataFrame(interactions_data['nodes'])
 # link_df = pd.DataFrame(interactions_data['links'])
 
-dot = Graph(comment='SW EP1 INTERACTIONS')
+G_symmetric = nx.Graph()
 
-i=0
+characters = []
 for node in interactions_data['nodes']:
-    dot.node(str(i), label=node['name'], color=node['colour'])
-    i+=1
+    characters.append(node['name'])
 
 for link in interactions_data['links']:
-    dot.edge(str(link['source']), str(link['target']), value=str(link['value']))
+    G_symmetric.add_edge(characters[link['source']],characters[link['target']])
 
-dot.render('test-output/sw.gv', view=True)
+nx.draw_networkx(G_symmetric)
