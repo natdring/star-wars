@@ -1,4 +1,7 @@
+from os import link
 import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
 import configparser
 import json
 
@@ -21,7 +24,7 @@ def prepData():
         tmp['episode'] = i
         node_df = node_df.append(tmp)
 
-        tmp = pd.DataFrame(interactions_data['nodes'])
+        tmp = pd.DataFrame(interactions_data['links'])
         tmp['episode'] = i
         link_df = link_df.append(tmp)
 
@@ -33,5 +36,27 @@ def prepData():
     
     return node_df, link_df, mentions_df
 
+def prepNetwork():
+    node_df, link_df, mentions_df = prepData()
+
+    networks = {}
+    for i in range(1,8):
+        G_weighted = nx.Graph()
+
+        curr_df = link_df.loc[link_df['episode'] == i]
+        for index, link in curr_df.iterrows():
+            # print(node_df.iloc[link['source']]['name'])
+            # print(node_df.iloc[link['target']]['name'])
+            # print(link['value']))
+            G_weighted.add_edge(node_df.iloc[link['source']]['name'], node_df.iloc[link['target']]['name'], weight=link['value'])
+        
+        networks[i] = G_weighted
+
+    return networks
+    
+
+
 if __name__ == "__main__":
-    prepData()
+    prepNetwork()
+    nx.draw_networkx(prepNetwork()[1])
+    plt.show()
