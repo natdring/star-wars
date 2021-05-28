@@ -64,13 +64,13 @@ app.layout = html.Div(
             children=[
                 html.Div(
                     children=dcc.Graph(
-                        id="mentions-chart", config={"displayModeBar": False},
+                        id="network", config={"displayModeBar": False},
                     ),
                     className="card",
                 ),
                 html.Div(
                     children=dcc.Graph(
-                        id="network", config={"displayModeBar": False},
+                        id="mentions-chart", config={"displayModeBar": False},
                     ),
                     className="card",
                 ),
@@ -101,7 +101,7 @@ def dashNetwork(episode):
     edge_trace = go.Scatter(
         x=edge_x, y=edge_y,
         line=dict(width=0.5, color='#888'),
-        hoverinfo='none',
+        hoverinfo='text',
         mode='lines')
 
     node_x = []
@@ -113,7 +113,10 @@ def dashNetwork(episode):
 
     node_trace = go.Scatter(
         x=node_x, y=node_y,
-        mode='markers',
+        text=[node[0] for node in G.nodes.data()],
+        textposition='top right',
+        textfont=dict(color='#E58606'),
+        mode='markers+text',
         hoverinfo='text',
         marker=dict(
             showscale=True,
@@ -140,7 +143,9 @@ def dashNetwork(episode):
         node_text.append('# of connections: '+str(len(adjacencies[1])))
 
     node_trace.marker.color = node_adjacencies
-    node_trace.text = node_text
+    node_trace.hovertext = node_text
+
+    edge_trace.text = [edge[2] for edge in G.edges.data('weight')]
 
     return edge_trace, node_trace
 
@@ -172,6 +177,7 @@ def update_charts(episode):
                 "x": 0.05,
                 "xanchor": "left",
             },
+            "margin": {"l":65, "r":25, "b":135, "t":40},
             "xaxis": {"fixedrange": True, "tickangle" : -45},
             "yaxis": {"fixedrange": True},
             "colorway": ["#17B897"],
@@ -182,19 +188,21 @@ def update_charts(episode):
     network_figure = go.Figure(
             data=[network_data[0], network_data[1]],
             layout=go.Layout(
-            title='<br>Episode ' + str(episode) + ' Social Network',
-            titlefont_size=16,
-            showlegend=False,
-            hovermode='closest',
-            margin=dict(b=20,l=5,r=5,t=40),
-            annotations=[ dict(
-                text="FOO BAR",
-                showarrow=False,
-                xref="paper", yref="paper",
-                x=0.005, y=-0.002 ) ],
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
-        )
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                title='<br>Episode ' + str(episode) + ' Social Network',
+                titlefont_size=16,
+                showlegend=False,
+                hovermode='closest',
+                margin=dict(b=20,l=5,r=5,t=40),
+                annotations=[ dict(
+                    text="Links between characters are defined by the times the characters are mentioned within the same scene.",
+                    showarrow=False,
+                    xref="paper", yref="paper",
+                    x=0.005, y=-0.002 ) ],
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+            )
     return mentions_chart_figure, network_figure
 
 
